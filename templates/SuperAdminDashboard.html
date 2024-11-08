@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode/build/jwt-decode.min.js"></script>
+</head>
+<body>
+    <h2>Super Admin</h2>
+    <div id="userInfo"></div> 
+    <div id="allUsers"></div>
+
+    
+
+    <script>
+        // Retrieve the token from local storage
+        const token = localStorage.getItem("access_token");
+
+        if (token) {
+            try {
+                // Decode the token using jwt-decode library
+                const decodedToken = jwt_decode(token);
+                
+                // Extract user info from the decoded token
+                const userName = decodedToken.name;
+                const userRole = decodedToken.role;
+
+                // Display super admin information in the HTML
+                document.getElementById("userInfo").innerHTML = `
+                    <p><strong>Super Admin Name:</strong> ${userName}</p>
+                    <p><strong>Role:</strong> ${userRole}</p>
+                `;
+
+                // Check if the user is a super admin
+                if (userRole === "super_admin") {
+                    // Fetch data from the API
+                    fetch("http://127.0.0.1:5000/show-all-user", {
+                        method: "GET",
+                        headers: {
+                            "Authorization": `Bearer ${token}`
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            document.getElementById("allUsers").innerHTML = `<p>${data.error}</p>`;
+                        } else {
+                            // Display the list of users
+                            let usersHtml = "<h3>All Users</h3><ul>";
+                            data.forEach(user => {
+                                usersHtml += `<li><strong>Name:</strong> ${user.name}, <strong>Email:</strong> ${user.email}, <strong>Role:</strong> ${user.role_name}</li>`;
+                            });
+                            usersHtml += "</ul>";
+                            document.getElementById("allUsers").innerHTML = usersHtml;
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error fetching user data:", error);
+                        document.getElementById("allUsers").innerHTML = "<p>Failed to load user data.</p>";
+                    });
+                } else {
+                    document.getElementById("allUsers").innerHTML = "<p>You do not have permission to view this data.</p>";
+                }
+
+            } catch (error) {
+                console.error("Failed to decode token:", error);
+                alert("Invalid token. Please log in again.");
+                // Optionally redirect to login page
+                window.location.href = "/";
+            }
+        } else {
+            // If no token is found, redirect to login page
+            alert("No token found. Please log in.");
+            window.location.href = "/";
+        }
+    </script>
+    
+</body>
+</html>

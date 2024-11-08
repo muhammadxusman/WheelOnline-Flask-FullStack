@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+body{
+    font-family: "Poppins", sans-serif;
+    background: #1c1c1c;
+    color: #fff;
+    margin: 0px !important;
+    padding: 0px !important;
+}
+
+.navbar {
+    background: #1c1c1c;
+    box-shadow: 0px 1px 3px rgb(198 4 4 / 63%);
+}
+
+.navbar .navbar-nav .nav-link {
+    color: #fff;
+}
+
+.btn-outline-dark {
+    border-radius: 0;
+}
+
+.btn-outline-dark:focus {
+    box-shadow: none;
+}
+
+@media screen and (max-width: 768px) {
+    .btn-outline-dark {
+        border: none;
+        padding: 0;
+        outline: none;
+    }
+
+    .btn-outline-dark:hover {
+        background: none;
+        color: gray;
+    }
+}
+
+.navbar-nav .nav-item {
+    margin-right: 15px;
+  
+}
+.siteLogo{
+    width: 200px;
+}
+.sign-up-btn{
+    color: #fff;
+    font-weight: 400 ;
+    border: 1px solid #9b9b9b;
+    padding: 8px 24px;
+    border-radius: 6px;
+}
+.red{
+    border: 1px solid red;
+}
+
+.home-section-row{
+    height: calc(100vh - 85.71px);
+}
+.spec-home-text{
+    color: #f11111
+}
+
+.home-text-1{
+    font-size: 62px;
+    font-weight: 400;
+    line-height: 72px;
+}
+
+.home-text-2{
+    font-size: 20px;
+    font-weight: 400;
+
+}
+.home-btn-1{
+    background: none;
+    color: #fff;
+    padding: 12px 24px;
+    /* border: 1px solid #ef2b2b9b; */
+    border-radius: 6px;
+    box-shadow: 1px 1px 2px rgb(198 4 4 / 63%);
+}
+
+.homecar{
+    width: 100%;
+    object-fit: cover;
+    
+}
+
+.car-card-img{
+    padding: 0px !important;
+    object-fit: cover;
+}
+.card{
+    color: #fff;
+    background: none;
+    width: 18rem;
+    box-shadow: -1px 1px 9px #f3f3f333;
+}

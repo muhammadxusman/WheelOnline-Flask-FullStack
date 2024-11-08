@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode/build/jwt-decode.min.js"></script>
+</head>
+<body>
+    <h3>Welcome to the dashboard</h3>
+    <div id="userInfo"></div>
+
+    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Tenetur eveniet mollitia dolore in cupiditate, deleniti odio quisquam.</p>
+
+    <!-- Form for submitting car data -->
+    <form id="carForm" action="/submit-data" method="POST" enctype="multipart/form-data">
+        <label for="carTitle">Car Title:</label>
+        <input type="text" id="carTitle" name="carTitle" required><br><br>
+
+        <label for="price">Price:</label>
+        <input type="number" id="price" name="price" required><br><br>
+
+        <label for="model">Model:</label>
+        <input type="number" id="model" name="model" required><br><br>
+
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" required></textarea><br><br>
+
+        <label for="images">Images:</label>
+        <input type="file" id="images" name="images" multiple required><br><br>
+
+        <label for="newCar">New Car:</label>
+        <input type="text" id="newCar" name="newCar" required><br><br>
+
+        <button type="button" onclick="submitCarData()">Submit</button>
+    </form>
+
+    <script>
+        const token = localStorage.getItem("access_token");
+
+        if (token) {
+            try {
+                const decodedToken = jwt_decode(token);
+                const userName = decodedToken.name;
+                const userRole = decodedToken.role;
+
+                document.getElementById("userInfo").innerHTML = `
+                    <p><strong>Name:</strong> ${userName}</p>
+                    <p><strong>Role:</strong> ${userRole}</p>
+                `;
+            } catch (error) {
+                console.error("Failed to decode token:", error);
+                alert("Invalid token. Please log in again.");
+                window.location.href = "/";
+            }
+        } else {
+            alert("No token found. Please log in.");
+            window.location.href = "/";
+        }
+
+        // Function to submit car data
+        function submitCarData() {
+            const form = document.getElementById("carForm");
+            const formData = new FormData(form);
+
+            // Append the JWT token to headers
+            fetch("/submit-data", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Car data submitted successfully!");
+                } else {
+                    alert("Failed to submit data: " + data.error);
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("An error occurred while submitting data.");
+            });
+        }
+    </script>
+</body>
+</html>
