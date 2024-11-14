@@ -1,31 +1,61 @@
-from flask import Flask, request, jsonify, render_template,redirect
+from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt, jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
 import pymysql
 from datetime import timedelta
-from sqlalchemy.dialects.postgresql import JSON
 pymysql.install_as_MySQLdb()
+from sqlalchemy.dialects.postgresql import JSON
 import os
 from werkzeug.utils import secure_filename
-
-
 app = Flask(__name__)
 
-app.config["SQLALCHEMY_DATABASE_URI"]= "mysql+pymysql://root:usman0336@localhost:3306/wheelsonline"
-
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:usman0336@localhost:3306/wheelsonline"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = "supersecretkey"
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=24)
+
+
+db = SQLAlchemy(app)
+jwt = JWTManager(app)
 
 # Define where to save uploaded images
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'Images')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
+@app.route('/')
+def home():
+    return render_template("home.html")
 
-db = SQLAlchemy(app)
-jwt = JWTManager(app)
+@app.route('/dashboard')
+def dashboard():
+    return render_template("UserDashboard.html")
+
+@app.route('/dashboard/upload')
+def UploadSection():
+    return render_template("UploadSection.html")
+
+
+@app.route('/used-car')
+def Used_car():
+    return render_template("UsedCar.html")
+
+@app.route('/super-admin-dashboard/upload')
+def sa_upload():
+    return render_template("SaUploadCar.html")
+
+
+@app.route('/super-admin-dashboard')
+def SuperAdmindashboard():
+    return render_template("SaDashboard.html")
+
+@app.route('/super-admin-dashboard/update-ads')
+def Sa_update_ads():
+    return render_template("Saupdate.html")
+
+
+
 
 # Role Model
 class Role(db.Model):
@@ -103,13 +133,13 @@ def sign_up():
         db.session.add(newUser)
         db.session.commit()
 
-        return redirect("/login")
+        return jsonify({"Success": "User registered successfully"})
     return render_template("signup.html")
 
 
 
 
-@app.route('/login',  methods=["GET", "POST"])
+@app.route('/login', methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         data = request.get_json()  # Receive JSON data instead of form data
@@ -162,26 +192,8 @@ def list_users():
     
     return jsonify({"users": users_list}), 200
 
-@app.route('/')
-def hello():
-    return render_template("home.html")
 
 
-
-@app.route('/dashboard')
-def dashboard():
-    return render_template("dashboard.html")
-
-
-@app.route('/used-car')
-def UsedCar():
-    return render_template("UsedCar.html")
-
-
-
-@app.route('/super-admin-dashboard')
-def SuperAdmindashboard():
-    return render_template("SuperAdminDashboard.html")
 
 
 
@@ -194,8 +206,9 @@ class Cars(db.Model):
     description = db.Column(db.String(500), nullable=False)
     images = db.Column(JSON, nullable=False)  # Store images as a JSON list of paths
     NewCar = db.Column(db.String(50), nullable=False)
-
+    status = db.Column(db.Integer, nullable=False, default=0)
     role = db.relationship('User', backref='users', lazy=True)
+ 
 
 
 @app.route('/submit-data', methods=['POST'])
@@ -207,7 +220,6 @@ def submitData():
     # Retrieve the current user ID from JWT claims
     claims = get_jwt()
     current_userId = claims.get("userId")
-
     car_title = request.form.get("carTitle")
     price = request.form.get("price")
     model = request.form.get("model")
@@ -250,6 +262,133 @@ def submitData():
     print("Car data submitted successfully")
     return jsonify({"success": "Car data submitted successfully"}), 201
 
+
+
+
+@app.route('/submit-data-sa', methods=['POST'])
+@jwt_required()
+def submitData_():
+    print("Request form data:", request.form)
+    print("Request files data:", request.files)
+
+    # Retrieve the current user ID from JWT claims
+    claims = get_jwt()
+    current_userId = claims.get("userId")
+    car_title = request.form.get("carTitle")
+    price = request.form.get("price")
+    model = request.form.get("model")
+    description = request.form.get("description")
+    new_car = request.form.get("newCar") 
+
+
+    # Validate that required fields are present
+    if not all([car_title, price, model, description, new_car]):
+        print("Error: Missing fields")
+        return jsonify({"error": "Some fields are missing"}), 400
+
+    # Handle multiple image files
+    images = request.files.getlist("images")
+    image_paths = []
+
+    for image in images:
+        if image:
+            # Secure the filename and save the image
+            filename = secure_filename(image.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            print(f"Saving image to {filepath}")
+            image.save(filepath)
+            image_paths.append(filepath)  # Append the file path to the list
+
+    # Create new car data entry
+    new_car_data = Cars(
+        userId=current_userId,
+        carTitle=car_title,
+        price=price,
+        model=model,
+        description=description,
+        images=image_paths,  # Store the list of file paths
+        NewCar=new_car,
+        status= 1
+    )
+
+    db.session.add(new_car_data)
+    db.session.commit()
+
+    print("Car data submitted successfully")
+    return jsonify({"success": "Car data submitted successfully"}), 201
+
+
+
+
+@app.route('/show-car', methods=["GET"])
+def show_car():
+    # showAllCar = Cars.query.filter_by(Cars.status == 1)
+    showAllCar = Cars.query.all()
+    if showAllCar:
+        AvlCars = []
+        for car in showAllCar:
+            allAvlCars = {
+                "car_Id": car.id,
+                "car_title": car.carTitle,
+                "price": car.price,
+                "model": car.model,
+                "description": car.description,
+                "images": car.images,
+                "new_car": car.NewCar,
+                "status":car.status
+            }
+            AvlCars.append(allAvlCars)  
+        return jsonify(AvlCars), 200  
+    return jsonify({"error": "no car found"}), 400
+
+@app.route('/update-status', methods=["PUT"])
+@jwt_required()
+def update_status():
+    current_user_email = get_jwt_identity()
+    if current_user_email != "superadmin@gmail.com":
+        return jsonify({"error": "Only the super admin can update car status"}), 403
+
+    data = request.get_json()  # Use request.get_json() to retrieve the JSON body
+    print("Data received in update-status:", data)  # Debugging line
+    
+    car_id = data.get("car_id")
+    new_status = data.get("status")
+
+    if car_id is None or new_status is None:
+        return jsonify({"error": "car_id and status are required"}), 400
+
+    car = Cars.query.get(car_id)
+    if not car:
+        return jsonify({"error": "Car not found"}), 404
+
+    car.status = new_status
+    db.session.commit()
+    return jsonify({"success": f"Car status updated to {new_status} for car ID {car_id}"}), 200
+
+
+@app.route('/user-ads', methods=["GET"])
+@jwt_required()
+def user_ads():
+    claims = get_jwt()
+    current_userId = claims.get("userId")
+
+    data = Cars.query.filter_by(userId=current_userId).all()
+    if data:
+        allData = []
+        for vehical in data:
+            # Assuming the full path includes '/Users/usmanali/Desktop/Fl/Images/', so we need to remove it
+            image_urls = [f"/static/images/{img.split('/')[-1]}" for img in vehical.images]
+            
+            fetch = {
+                "VehicalTitle": vehical.carTitle,
+                "Price": vehical.price,
+                "Model": vehical.model,
+                "Description": vehical.description,
+                "Images": image_urls,
+            }
+            allData.append(fetch)
+        return jsonify(allData), 200
+    return jsonify({"error": "No data found"}), 400
 
 
 @app.route('/show-all-user')

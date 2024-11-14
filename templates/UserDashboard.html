@@ -1,0 +1,134 @@
+{% extends "dashboard.html" %}
+{% block content %}
+
+<div class="container mt-3">
+
+    <h2>User Dashboard</h2>
+
+
+    <div id="root">
+        <div class="container pt-5">
+          <div class="row align-items-stretch">
+            <div class="c-dashboardInfo col-lg-3 col-md-6">
+              <div class="wrap">
+                <h4 class="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">Total Vehical<svg
+                    class="MuiSvgIcon-root-19" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="presentation">
+                    <path fill="none" d="M0 0h24v24H0z"></path>
+                    <path
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z">
+                    </path>
+                  </svg></h4><span class="hind-font caption-12 c-dashboardInfo__count">23</span>
+              </div>
+            </div>
+            <div class="c-dashboardInfo col-lg-3 col-md-6">
+              <div class="wrap">
+                <h4 class="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">Approved Vehical<svg
+                    class="MuiSvgIcon-root-19" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="presentation">
+                    <path fill="none" d="M0 0h24v24H0z"></path>
+                    <path
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z">
+                    </path>
+                  </svg></h4><span class="hind-font caption-12 c-dashboardInfo__count">15</span>
+              </div>
+            </div>
+            <div class="c-dashboardInfo col-lg-3 col-md-6">
+              <div class="wrap">
+                <h4 class="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">Total Views<svg
+                    class="MuiSvgIcon-root-19" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="presentation">
+                    <path fill="none" d="M0 0h24v24H0z"></path>
+                    <path
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z">
+                    </path>
+                  </svg></h4><span class="hind-font caption-12 c-dashboardInfo__count">400</span>
+              </div>
+            </div>
+            <div class="c-dashboardInfo col-lg-3 col-md-6">
+              <div class="wrap">
+                <h4 class="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">Unapproved Ads<svg
+                    class="MuiSvgIcon-root-19" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="presentation">
+                    <path fill="none" d="M0 0h24v24H0z"></path>
+                    <path
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z">
+                    </path>
+                  </svg></h4><span class="hind-font caption-12 c-dashboardInfo__count">8</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      
+
+      <div class="container mt-3">
+        <h2>Your ads</h2>
+    
+        <!-- Container where ads will be dynamically added -->
+        <div id="adsContainer" class="ads-container mt-4">
+            <p>Loading ads...</p> <!-- Placeholder text while loading -->
+        </div>
+    </div>
+    
+    <script>
+        // Function to fetch and display user ads
+        async function loadUserAds() {
+            const adsContainer = document.getElementById("adsContainer");
+            adsContainer.innerHTML = ""; // Clear any loading text
+    
+            try {
+                const response = await fetch('/user-ads', {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+                    }
+                });
+    
+                if (!response.ok) {
+                    adsContainer.innerHTML = "<p>Error loading ads.</p>";
+                    return;
+                }
+    
+                const ads = await response.json();
+    
+                if (ads.length === 0) {
+                    adsContainer.innerHTML = "<p>No ads found.</p>";
+                    return;
+                }
+    
+                ads.forEach(ad => {
+                    const adItem = document.createElement("div");
+                    adItem.classList.add("ad-item", "mb-3", "p-3", "border", "rounded");
+    
+                    adItem.innerHTML = `
+                        <h4>${ad.VehicalTitle}</h4>
+                        <p><strong>Model:</strong> ${ad.Model}</p>
+                        <p><strong>Description:</strong> ${ad.Description}</p>
+                        <div class="ad-images">
+                            ${ad.Images && ad.Images.length > 0 ? ad.Images.map(img => `
+                                <img src="${img}" alt="Vehicle Image" class="img-thumbnail" style="max-width: 150px; margin-right: 10px;">
+                            `).join('') : '<p>No images available.</p>'}
+                        </div>
+                    `;
+    
+                    adsContainer.appendChild(adItem);
+                });
+            } catch (error) {
+                console.error("Error fetching ads:", error);
+                adsContainer.innerHTML = "<p>Failed to load ads.</p>";
+            }
+        }
+    
+        // Call the function to load ads when the page loads
+        document.addEventListener("DOMContentLoaded", loadUserAds);
+    </script>
+      
+
+
+
+
+
+</div>
+
+
+
+
+{% endblock %}

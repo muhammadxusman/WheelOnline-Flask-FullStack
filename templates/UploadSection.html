@@ -1,0 +1,209 @@
+{% extends "dashboard.html" %}
+
+{% block content %}
+
+<div class="car-upload-container mt-4">
+    <h2 class="form-heading">Upload New Vehicle</h2>
+    
+    <form id="carForm" class="car-upload-form" action="/submit-data" method="POST" enctype="multipart/form-data">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="carTitle" class="form-label">Car Title:</label>
+                <input type="text" id="carTitle" name="carTitle" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label for="price" class="form-label">Price:</label>
+                <input type="number" id="price" name="price" class="form-input" required>
+            </div>
+        </div>
+        
+        <div class="form-row mt-4">
+            <div class="form-group">
+                <label for="model" class="form-label">Model:</label>
+                <input type="number" id="model" name="model" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">New Car:</label>
+                <div class="radio-options">
+                    <label class="radio-label">
+                        <input type="radio" name="newCar" value="true" required> Yes
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="newCar" value="false" required> No
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-row mt-4">
+            <div class="form-group full-width">
+                <label for="description" class="form-label">Description:</label>
+                <textarea id="description" name="description" class="form-textarea" required></textarea>
+            </div>
+        </div>
+
+        <div class="form-row my-4">
+            <div class="form-group full-width">
+                <label for="images" class="form-label">Images:</label>
+                <input type="file" id="images" name="images" class="form-input-file" multiple required>
+            </div>
+        </div>
+
+        <button type="button" onclick="submitCarData()" class="submit-button">Submit</button>
+    </form>
+</div>
+
+<script>
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+        alert("No token found. Please log in.");
+        window.location.href = "/";
+    } else {
+        console.log("Login Success");
+    }
+
+    function submitCarData() {
+        const form = document.getElementById("carForm");
+        const formData = new FormData(form);
+
+        fetch("/submit-data", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Car data submitted successfully!");
+                form.reset();
+            } else {
+                alert("Failed to submit data: " + data.error);
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("An error occurred while submitting data.");
+        });
+    }
+</script>
+
+<style>
+    /* Glassmorphism container */
+    .car-upload-container {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 20px;
+        max-width: 800px;
+        margin: 0 auto;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        width: 100%;
+    }
+
+    .form-heading {
+        text-align: center;
+        font-family: Arial, sans-serif;
+        color: #fff;
+        margin-bottom: 20px;
+    }
+
+    .form-row {
+        display: flex;
+        gap: 20px;
+    }
+
+    .form-group {
+        flex: 1;
+    }
+
+    .full-width {
+        flex: 1 0 100%;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+        font-family: Arial, sans-serif;
+        color: #fff;
+    }
+
+    .form-input,
+    .form-textarea,
+    .form-input-file {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 5px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        font-family: Arial, sans-serif;
+    }
+
+    .form-textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .form-input::placeholder, .form-textarea::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .radio-options {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .radio-label {
+        font-family: Arial, sans-serif;
+        color: #fff;
+    }
+
+    .submit-button {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 12px 20px;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        font-family: Arial, sans-serif;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    .submit-button:hover {
+        background-color: rgba(255, 255, 255, 0.4);
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .form-row {
+            flex-direction: column;
+        }
+        
+        .car-upload-container {
+            padding: 15px;
+            max-width: 100%;
+        }
+
+        .form-heading {
+            font-size: 1.5rem;
+        }
+
+        .submit-button {
+            font-size: 1rem;
+            padding: 10px 15px;
+        }
+    }
+</style>
+
+{% endblock %}

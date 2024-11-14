@@ -1,0 +1,78 @@
+{% extends "SuperAdminDashboard.html" %}
+{% block content %}
+<h2>Car Status Management</h2>
+
+<table id="car-table" class="table">
+    <thead>
+        <tr>
+            <th>Car Title</th>
+            <th>Price</th>
+            <th>Model</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Update Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Car data will be populated here by JavaScript -->
+    </tbody>
+</table>
+
+<script>
+    fetch('/show-car', {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('access_token') // Retrieve JWT token from local storage
+        }
+    })
+        .then(response => response.json())
+        .then(cars => {
+            const carTable = document.getElementById('car-table').querySelector('tbody');
+            cars.forEach(car => {
+                const row = document.createElement('tr');
+
+                row.innerHTML = `
+                <td>${car.car_title}</td>
+                <td>${car.price}</td>
+                <td>${car.model}</td>
+                <td>${car.description}</td>
+                <td>${car.status == 0 ? 'Inactive' : 'Active'}</td>
+                <td>
+                    <select onchange="updateStatus(${car.car_Id}, this.value)">
+                        <option value="">Select Status</option>
+                        <option value="1">Activate</option>
+                        <option value="0">Deactivate</option>
+                    </select>
+                </td>
+            `;
+                carTable.appendChild(row);
+            });
+        });
+
+    function updateStatus(carId, newStatus) {
+        console.log("first", carId, newStatus);
+        if (newStatus === "") return; // Ignore if no status is selected
+
+        console.log("Updating car ID:", carId, "with status:", newStatus);
+
+        fetch('/update-status', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token') // JWT token from local storage
+            },
+            body: JSON.stringify({ car_id: carId, status: parseInt(newStatus) }) // Ensure JSON format
+        })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert(result.success); // Show success message
+                    location.reload();      // Refresh the page to show updated status
+                } else {
+                    alert(result.error);    // Show error message if update fails
+                }
+            });
+    }
+
+</script>
+{% endblock %}
