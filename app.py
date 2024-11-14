@@ -317,7 +317,23 @@ def submitData_():
     print("Car data submitted successfully")
     return jsonify({"success": "Car data submitted successfully"}), 201
 
-
+@app.route('/avialable-car', methods=['GET'])
+def aialable_car():
+    data = Cars.query.filter_by(status=1).all()
+    
+    if data:
+        avail_car_for_sell = []
+        for car in data:
+            list = {
+                "id":car.id,
+                "name": car.carTitle,
+                "price": car.price,
+                "model": car.model,
+                "images": car.images
+            }
+            avail_car_for_sell.append(list)
+        return jsonify(avail_car_for_sell),200
+    return jsonify({"error","No car Found"}),400
 
 
 @app.route('/show-car', methods=["GET"])
